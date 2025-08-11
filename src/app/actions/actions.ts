@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "../../../firebase/firebase.config";
-import { addDoc, collection, serverTimestamp, updateDoc, doc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, updateDoc, doc, Timestamp } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
-import { Booking, BookingStatus } from "./types";
+import { BookingStatus, NewBooking } from "./types";
 import { InitialState } from "../types/types";
 
 function validatePhoneNumber(phoneNumber: string): boolean {
@@ -11,6 +11,7 @@ function validatePhoneNumber(phoneNumber: string): boolean {
   const phoneRegex = /^(?:\+\d{11}|\d{10}|\d{12})$/;
   return phoneRegex.test(strippedNumber);
 }
+
 export async function createBooking(prevState: InitialState, formData: FormData): Promise<InitialState> {
   const clientName = formData.get("clientName") as string;
   const clientPhone = formData.get("clientPhone") as string;
@@ -29,20 +30,33 @@ export async function createBooking(prevState: InitialState, formData: FormData)
   }
 
   if (!validatePhoneNumber(clientPhone)) {
-    return { 
-      success: false, 
-      id: null, 
-      error: "Invalid phone number." };
+    return {
+      success: false,
+      id: null,
+      error: "Invalid phone number."
+    };
   }
 
+  const combinedDateTimeString = `${bookingDate}T${bookingTime}:00`;
+  const appointmentDate = new Date(combinedDateTimeString);
+
+  if (isNaN(appointmentDate.getTime())) {
+    return {
+      success: false,
+      id: null,
+      error: "Invalid booking date or time format."
+    };
+  }
+
+  const bookingTimestamp = Timestamp.fromDate(appointmentDate);
+
   try {
-    const newBooking: Omit<Booking, 'id'> = {
+    const newBooking: NewBooking = {
       clientName,
       clientPhone,
       service,
       barber,
-      bookingDate,
-      bookingTime,
+      bookingTime: bookingTimestamp,
       status: BookingStatus.Pending,
       createdAt: serverTimestamp(),
     };
@@ -53,18 +67,18 @@ export async function createBooking(prevState: InitialState, formData: FormData)
 
     revalidatePath("/");
 
-    return { 
-      success: true, 
-      id: docRef.id, 
-      error: null 
+    return {
+      success: true,
+      id: docRef.id,
+      error: null
     };
 
   } catch (e) {
     console.error("Error adding booking to Firestore:", e);
-    return { 
-      success: false, 
+    return {
+      success: false,
       id: null,
-      error: "An error occurred while creating the booking." 
+      error: "An error occurred while creating the booking."
     };
   }
 }

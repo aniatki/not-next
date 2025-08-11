@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
 
 export enum BookingStatus {
     Pending = "pending",
@@ -8,7 +8,6 @@ export enum BookingStatus {
     NoShow = "no-show",
 }
 
-// UPDATED: Added clientEmail and clientPhone fields
 export interface Booking {
     id?: string;
     clientName: string;
@@ -20,3 +19,13 @@ export interface Booking {
     status: BookingStatus;
     createdAt: Timestamp;
 }
+
+export type NewBooking = {
+  clientName: string;
+  clientPhone: string;
+  service: string;
+  barber: string;
+  bookingTime: Timestamp;
+  status: BookingStatus;
+  createdAt: FieldValue;
+};
