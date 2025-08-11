@@ -7,12 +7,11 @@ import { Booking, BookingStatus } from "./types";
 import { InitialState } from "../types/types";
 
 function validatePhoneNumber(phoneNumber: string): boolean {
-  const phoneRegex = /^(?:\+\d{3}\s\d{2}\s\d{3}\s\d{4}|\d{3}\s\d{3}\s\d{4}|\d{5}\s\d{2}\s\d{3}\s\d{4})$/;
-  return phoneRegex.test(phoneNumber);
+  const strippedNumber = phoneNumber.replace(/\s/g, "");
+  const phoneRegex = /^(?:\+\d{11}|\d{10}|\d{12})$/;
+  return phoneRegex.test(strippedNumber);
 }
-
 export async function createBooking(prevState: InitialState, formData: FormData): Promise<InitialState> {
-  // Extract data from the FormData object
   const clientName = formData.get("clientName") as string;
   const clientPhone = formData.get("clientPhone") as string;
   const service = formData.get("service") as string;

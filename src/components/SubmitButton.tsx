@@ -6,7 +6,7 @@ export default function SubmitButton() {
 
   return (
     <Button
-      className="w-full cursor-pointer hover:bg-black/70"
+      className="w-full cursor-pointer bg-primary text-primary-foreground"
       type="submit"
       disabled={pending}
     >

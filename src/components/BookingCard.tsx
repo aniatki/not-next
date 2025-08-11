@@ -1,72 +1,108 @@
 import { updateBookingStatus } from "@/app/actions/actions";
 import { BookingStatus, Booking } from "@/app/actions/types";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { CalendarFold, Clock, Handbag, Phone, UserRoundSearch } from 'lucide-react';
+
 
 export default function BookingCard({ booking }: { booking: Booking }) {
   const [isUpdating, setIsUpdating] = useState(false);
-
   const handleUpdateStatus = async (newStatus: BookingStatus) => {
     setIsUpdating(true);
     await updateBookingStatus(booking.id!, newStatus);
     setIsUpdating(false);
   };
-  
-  const statusColor = {
-    [BookingStatus.Pending]: "bg-yellow-100 text-yellow-800",
-    [BookingStatus.Rejected]: "bg-red-100 text-red-800",
-    [BookingStatus.Accepted]: "bg-blue-100 text-blue-800",
-    [BookingStatus.Done]: "bg-green-100 text-green-800",
-    [BookingStatus.NoShow]: "bg-red-100 text-red-800",
-  }[booking.status];
+
+  function status(status: BookingStatus): ReactNode {
+    
+    switch (status) {
+      case "accepted":
+        return <Badge variant={"default"}>Accepted</Badge>
+      case "rejected":
+        return <Badge variant={"destructive"}>Rejected</Badge>
+      case "pending":
+        return <Badge variant={"outline"}>Pending</Badge>
+      case "no-show":
+        return <Badge variant={"destructive"}>No Show</Badge>
+      case "done":
+        return <Badge variant={"secondary"}>Done</Badge>
+      default:
+        return <Badge variant={"secondary"}>Pending</Badge>
+
+    }
+  }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col space-y-3">
+    <div 
+      className={`
+        p-4 
+        rounded-lg 
+        shadow-sm 
+        border 
+        flex 
+        flex-col 
+        space-y-3 
+        ${booking.status === "pending" && "opacity-100 font-bold outline-ring outline-3"}
+        ${booking.status === "rejected" && "opacity-65"}
+        ${booking.status === "no-show" && "opacity-65"}
+        `}>
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900">{booking.clientName}</h3>
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
-          {booking.status}
+        <h3 className="text-lg font-semibold">{booking.clientName}</h3>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium`}>
+          {status(booking.status)}
         </span>
       </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-gray-600 text-sm">
-        <p><strong>Phone:</strong> {booking.clientPhone}</p>
+      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
+        <div className="flex items-center gap-2">
+          <Phone size={16} /> {booking.clientPhone}
+        </div>
       </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-gray-600 text-sm">
-        <p><strong>Service:</strong> {booking.service}</p>
-        <p><strong>Barber:</strong> {booking.barber}</p>
+      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
+        <div className="flex items-center gap-2">
+          <Handbag size={16} /> {booking.service}
+        </div>
+        <div className="flex items-center gap-2">
+          <UserRoundSearch size={16} /> {booking.barber}
+        </div>
       </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-gray-600 text-sm">
-        <p><strong>Date:</strong> {booking.bookingDate}</p>
-        <p><strong>Time:</strong> {booking.bookingTime}</p>
+      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
+        <div className="flex items-center gap-2">
+          <CalendarFold size={16} /> {booking.bookingDate}
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock size={16} /> {booking.bookingTime}
+        </div>
       </div>
-      
-      {/* Action buttons based on status */}
+
       <div className="flex flex-wrap gap-2 pt-2 border-t mt-auto">
         {booking.status === BookingStatus.Pending && (
           <>
-            <button
+            <Button
               onClick={() => handleUpdateStatus(BookingStatus.Accepted)}
-              className="flex-1 py-1 px-2 text-sm rounded-md bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors duration-200 disabled:bg-gray-400"
               disabled={isUpdating}
+              variant="default"
+              className="bg-primary-foreground text-primary hover:bg-primary-foreground/80"
             >
               Accept
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => handleUpdateStatus(BookingStatus.Rejected)}
-              className="flex-1 py-1 px-2 text-sm rounded-md bg-red-500 text-white font-medium hover:bg-red-600 transition-colors duration-200 disabled:bg-gray-400"
               disabled={isUpdating}
+              variant="destructive"
             >
               Reject
-            </button>
+            </Button>
           </>
         )}
         {booking.status === BookingStatus.Accepted && (
-          <button
+          <Button
             onClick={() => handleUpdateStatus(BookingStatus.Done)}
-            className="flex-1 py-1 px-2 text-sm rounded-md bg-green-500 text-white font-medium hover:bg-green-600 transition-colors duration-200 disabled:bg-gray-400"
             disabled={isUpdating}
+            variant="default"
           >
             Mark as Done
-          </button>
+          </Button>
         )}
       </div>
     </div>

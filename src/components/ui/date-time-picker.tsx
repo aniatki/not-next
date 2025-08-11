@@ -37,7 +37,7 @@ export function Calendar24({ date, time, onDateChange, onTimeChange }: Calendar2
   return (
     <div className="flex gap-4">
       <div className="flex flex-col gap-3">
-        <Label htmlFor="bookingDate" className="px-1">
+        <Label htmlFor="bookingDate" className="px-1 text-muted-foreground">
           Booking Date
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
@@ -67,7 +67,7 @@ export function Calendar24({ date, time, onDateChange, onTimeChange }: Calendar2
         </Popover>
       </div>
       <div className="flex flex-col gap-3">
-        <Label htmlFor="bookingTime" className="px-1">
+        <Label htmlFor="bookingTime" className="px-1 text-muted-foreground">
           Time
         </Label>
         <Input
@@ -77,7 +77,7 @@ export function Calendar24({ date, time, onDateChange, onTimeChange }: Calendar2
           step="1"
           defaultValue={selectedTime}
           onChange={handleTimeChange}
-          className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     </div>

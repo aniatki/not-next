@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useState } from "react";
 import { useActionState } from "react";
 import { InitialState } from "@/app/types/types";
+import { toast } from "sonner"
 
 export default function BookingForm() {
 
@@ -33,11 +34,15 @@ export default function BookingForm() {
   const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : "";
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Book Appointment</h2>
-      <form action={formAction}>
+    <div className=" p-8 rounded-lg shadow-lg w-full max-w-md">
+      <h2 className="text-2xl font-bold mb-6 text-center ">Book Appointment</h2>
+      <form 
+        action={formAction} 
+        onError={() => toast("Check your form fields.")} 
+        onSubmit={() => toast("Booking has been made")}
+        >
         <div className="mb-4">
-          <Label htmlFor="clientName">Your Name</Label>
+          <Label htmlFor="clientName" className="mb-2 text-muted-foreground">Your Name</Label>
           <Input
             type="text"
             id="clientName"
@@ -48,7 +53,7 @@ export default function BookingForm() {
         </div>
 
         <div className="mb-4">
-          <Label htmlFor="clientPhone">Phone Number</Label>
+          <Label htmlFor="clientPhone" className="mb-2 text-muted-foreground">Phone Number</Label>
           <Input
             type="tel"
             id="clientPhone"
@@ -58,7 +63,7 @@ export default function BookingForm() {
           />
 
           {formState?.error && (
-            <p className="mt-2 text-sm text-red-600">{formState.error}</p>
+            <p className="mt-2 text-sm text-destructive">{formState.error}</p>
           )}
         </div>
 
