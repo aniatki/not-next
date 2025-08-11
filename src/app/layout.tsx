@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -31,7 +30,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ThemeToggle />
+            <div className="grid place-content-end my-4 max-w-3xl mx-auto">
+              <ThemeToggle />
+            </div>
         {children}
         <Toaster />
         </ThemeProvider>

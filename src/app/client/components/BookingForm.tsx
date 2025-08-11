@@ -1,9 +1,11 @@
+"use client"
+
 import { createBooking } from "@/app/actions/actions";
-import SubmitButton from "./SubmitButton";
-import { Calendar24 } from "./ui/date-time-picker";
+import SubmitButton from "@/app/client/components/SubmitButton";
+import { Calendar24 } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useActionState } from "react";
 import { InitialState } from "@/app/types/types";
@@ -106,8 +108,6 @@ export default function BookingForm() {
           />
           <input type="hidden" name="bookingDate" value={formattedDate} />
         </div>
-
-
         <SubmitButton />
       </form>
     </div>
