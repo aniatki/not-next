@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export enum BookingStatus {
     Pending = "pending",
     Rejected = "rejected",
@@ -16,6 +18,5 @@ export interface Booking {
     bookingDate: string;
     bookingTime: string;
     status: BookingStatus;
-    // @ts-ignore
-    createdAt: any;
+    createdAt: Timestamp;
 }
