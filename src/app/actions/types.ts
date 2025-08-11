@@ -16,5 +16,6 @@ export interface Booking {
     bookingDate: string;
     bookingTime: string;
     status: BookingStatus;
+    // @ts-ignore
     createdAt: any;
 }

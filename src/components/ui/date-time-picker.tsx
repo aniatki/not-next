@@ -20,7 +20,7 @@ interface Calendar24Props {
   onTimeChange: (time: string) => void;
 }
 
-export function Calendar24({ date, time, onDateChange, onTimeChange }: Calendar24Props) {
+export function Calendar24({ date, onDateChange, onTimeChange }: Calendar24Props) {
   const [open, setOpen] = React.useState(false);
   const [selectedTime, setSelectedTime] = React.useState<string>("09:00");
 
