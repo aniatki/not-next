@@ -11,7 +11,6 @@ import BarberDashboard from '@/components/BarberDashboard';
 export default function BarberLoginClient({ user: serverUser, barberData }: { user: DecodedIdToken | User | null, barberData: FirebaseFirestore.DocumentData | null | undefined }) {
   const [clientUser, setClientUser] = useState(serverUser);
   const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && !serverUser) {
@@ -58,7 +57,7 @@ export default function BarberLoginClient({ user: serverUser, barberData }: { us
     <div className='flex flex-col mx-auto max-w-3xl p-4'>
       {clientUser ? (<>
         <Button onClick={handleSignOut}>Sign Out</Button>
-        <BarberDashboard barberData={barberData}/>
+        <BarberDashboard barberData={barberData} uid={clientUser.uid}/>
         </>
       ) : (
         <div>

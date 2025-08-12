@@ -1,13 +1,14 @@
 "use server";
 
 import { db } from "../../../firebase/firebase.config";
-import { addDoc, collection, serverTimestamp, updateDoc, doc, Timestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, updateDoc, doc, Timestamp, DocumentData, getFirestore } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { BookingStatus, NewBooking } from "./types";
 import { InitialState } from "../types/types";
-
 import { cookies } from 'next/headers';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import { getAdminApp, getAdminAuth } from '@/lib/firebase-admin';
+import { initializeApp } from "firebase/app";
 
 function validatePhoneNumber(phoneNumber: string): boolean {
   const strippedNumber = phoneNumber.replace(/\s/g, "");
@@ -86,42 +87,53 @@ export async function createBooking(prevState: InitialState, formData: FormData)
   }
 }
 
-export async function updateBookingStatus(bookingId: string, newStatus: BookingStatus): Promise<{success: boolean | undefined, error: string | null}> {
+export async function updateBookingStatus(uid: string, bookingId: string | undefined, newStatus: string): Promise<{ success: boolean, message: string | null }> {
   try {
-    if (!Object.values(BookingStatus).includes(newStatus)) {
-      throw new Error(`Invalid status: ${newStatus}`);
+    if (!uid || typeof uid !== 'string' || !bookingId || typeof bookingId !== 'string') {
+      console.error('Error updating booking status: Invalid input received.', { uid, bookingId });
+      return { success: false, message: 'Invalid proprietor or booking ID.' };
     }
 
-    const bookingRef = doc(db, "bookings", bookingId);
-    await updateDoc(bookingRef, {
-      status: newStatus,
+    const adminDb = getAdminFirestore(getAdminApp());
+    const proprietorDoc = await adminDb.collection('proprietors').doc(uid).get();
+
+    if (!proprietorDoc.exists) {
+      console.error('Proprietor document not found for UID:', uid);
+      return { success: false, message: 'Proprietor not found.' };
+    }
+
+    const { firebaseConfig } = proprietorDoc.data() as DocumentData;
+    if (!firebaseConfig) {
+      console.error('firebaseConfig not found in proprietor document for UID:', uid);
+      return { success: false, message: 'Proprietor database config not found.' };
+    }
+    
+    const clientApp = initializeApp(firebaseConfig, `proprietor-${uid}`);
+    const clientDb = getFirestore(clientApp);
+    
+    const bookingDocRef = doc(clientDb, "bookings", bookingId);
+
+    await updateDoc(bookingDocRef, {
+      status: newStatus
     });
 
-    console.log(`Successfully updated booking ${bookingId} to status: ${newStatus}`);
+    revalidatePath('/barber-dashboard');
 
-    revalidatePath("/");
+    return { success: true, message: null };
 
-    return { 
-      success: true, 
-      error: null 
-    };
-
-  } catch (e) {
-    console.error("Error updating booking status:", e);
-    return { 
-      success: false, 
-      error: "An error occurred while updating the booking status." 
-    };
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    return { success: false, message: 'Failed to update booking status.' };
   }
 }
 
-const FIVE_DAYS_IN_MS = 60 * 60 * 24 * 5 * 1000;
 
+const FIVE_DAYS_IN_MS = 60 * 60 * 24 * 5 * 1000;
 export async function createSession(idToken: string) {
   try {
     const sessionCookie = await getAdminAuth().createSessionCookie(idToken, { expiresIn: FIVE_DAYS_IN_MS });
     const cookieStore = await cookies();
-    
+
     cookieStore.set('session', sessionCookie, {
       maxAge: FIVE_DAYS_IN_MS,
       httpOnly: true,

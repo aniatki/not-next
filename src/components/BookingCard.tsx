@@ -7,16 +7,21 @@ import { Button } from "./ui/button";
 import { CalendarFold, Clock, Handbag, Phone, UserRoundSearch } from 'lucide-react';
 
 
-export default function BookingCard({ booking }: { booking: Booking }) {
+export default function BookingCard({ booking, uid }: { booking: Booking, uid: string }) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const handleUpdateStatus = async (newStatus: BookingStatus) => {
-    setIsUpdating(true);
-    await updateBookingStatus(booking.id!, newStatus);
-    setIsUpdating(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!booking?.id || !uid) {
+        console.error("BookingCard: Cannot update status. Missing booking ID or UID.");
+        return;
+    }
+    setLoading(true);
+    await updateBookingStatus(uid, booking.id, newStatus);
+    setLoading(false);
   };
 
-  function status(status: BookingStatus): ReactNode {
-    
+  const status = (status: BookingStatus): ReactNode => {
     switch (status) {
       case "accepted":
         return <Badge variant={"default"}>Accepted</Badge>
