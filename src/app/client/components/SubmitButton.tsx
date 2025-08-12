@@ -1,5 +1,6 @@
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { LoaderCircle } from "lucide-react";
 
 export default function SubmitButton() {
   const { pending } = useFormStatus();
@@ -10,7 +11,7 @@ export default function SubmitButton() {
       type="submit"
       disabled={pending}
     >
-      {pending ? "Booking..." : "Book Appointment"}
+      {pending ? <LoaderCircle/> : "Book Appointment"}
     </Button>
   );
 }

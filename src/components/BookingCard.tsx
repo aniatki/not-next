@@ -4,21 +4,19 @@ import { BookingStatus, Booking } from "@/app/actions/types";
 import { ReactNode, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { CalendarFold, Clock, Handbag, Phone, UserRoundSearch } from 'lucide-react';
-
+import { CalendarFold, Clock, Handbag, LoaderCircle, Phone, UserRoundSearch } from 'lucide-react';
 
 export default function BookingCard({ booking, uid }: { booking: Booking, uid: string }) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (!booking?.id || !uid) {
         console.error("BookingCard: Cannot update status. Missing booking ID or UID.");
         return;
-    }
-    setLoading(true);
+      }
+    setIsUpdating(true)
     await updateBookingStatus(uid, booking.id, newStatus);
-    setLoading(false);
+    setIsUpdating(false)
   };
 
   const status = (status: BookingStatus): ReactNode => {
@@ -56,7 +54,7 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">{booking.clientName}</h3>
         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium`}>
-          {status(booking.status)}
+          {isUpdating ? <LoaderCircle /> : status(booking.status)}
         </span>
       </div>
       <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
@@ -103,11 +101,12 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
         )}
         {booking.status === BookingStatus.Accepted && (
           <Button
+            className="w-28"
             onClick={() => handleUpdateStatus(BookingStatus.Done)}
             disabled={isUpdating}
             variant="default"
           >
-            Mark as Done
+            {isUpdating ? <LoaderCircle /> :"Mark as Done"}
           </Button>
         )}
       </div>
