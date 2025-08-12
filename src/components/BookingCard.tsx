@@ -1,3 +1,4 @@
+"use client"
 import { updateBookingStatus } from "@/app/actions/actions";
 import { BookingStatus, Booking } from "@/app/actions/types";
 import { ReactNode, useState } from "react";

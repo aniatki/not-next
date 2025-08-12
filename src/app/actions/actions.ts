@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 import { BookingStatus, NewBooking } from "./types";
 import { InitialState } from "../types/types";
 
+import { cookies } from 'next/headers';
+import { getAdminAuth } from '@/lib/firebase-admin';
+
 function validatePhoneNumber(phoneNumber: string): boolean {
   const strippedNumber = phoneNumber.replace(/\s/g, "");
   const phoneRegex = /^(?:\+\d{11}|\d{10}|\d{12})$/;
@@ -83,7 +86,6 @@ export async function createBooking(prevState: InitialState, formData: FormData)
   }
 }
 
-
 export async function updateBookingStatus(bookingId: string, newStatus: BookingStatus): Promise<{success: boolean | undefined, error: string | null}> {
   try {
     if (!Object.values(BookingStatus).includes(newStatus)) {
@@ -113,3 +115,36 @@ export async function updateBookingStatus(bookingId: string, newStatus: BookingS
   }
 }
 
+const FIVE_DAYS_IN_MS = 60 * 60 * 24 * 5 * 1000;
+
+export async function createSession(idToken: string) {
+  try {
+    const sessionCookie = await getAdminAuth().createSessionCookie(idToken, { expiresIn: FIVE_DAYS_IN_MS });
+    const cookieStore = await cookies();
+    
+    cookieStore.set('session', sessionCookie, {
+      maxAge: FIVE_DAYS_IN_MS,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+  } catch (error) {
+    console.error('Failed to create session cookie:', error);
+  }
+}
+
+export async function deleteSession() {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (sessionCookie) {
+      cookieStore.delete('session');
+      const decodedClaims = await getAdminAuth().verifySessionCookie(sessionCookie);
+      await getAdminAuth().revokeRefreshTokens(decodedClaims.sub);
+    }
+  } catch (error) {
+    console.error('Failed to delete session:', error);
+  }
+}
