@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, User, UserCredential } from "firebase/auth";
+import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, UserCredential } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { auth, provider } from "../../../firebase/firebase.config";
 import { createSession, deleteSession } from '../actions/actions';
@@ -23,7 +23,7 @@ export default function BarberLoginClient({ user: serverUser, barberData }: { us
         console.log("Client-side user signed out. Deleting server session...");
         await deleteSession();
       }
-      // @ts-ignore
+      // @ts-expect-error 
       setClientUser(user);
     });
 
@@ -34,7 +34,7 @@ export default function BarberLoginClient({ user: serverUser, barberData }: { us
     setIsLoading(true);
     try {
       const pt: UserCredential = await signInWithPopup(auth, provider)
-      // @ts-ignore
+      // @ts-expect-error
       toast.promise(pt, {
         loading: "Waiting for authentication",
         success: (_) => {
@@ -54,7 +54,7 @@ export default function BarberLoginClient({ user: serverUser, barberData }: { us
     setIsLoading(true);
     try {
       const pt = await firebaseSignOut(auth);
-      // @ts-ignore
+      // @ts-expect-error
       toast.promise(pt, {
         success: () => {
           return "Signed out."
