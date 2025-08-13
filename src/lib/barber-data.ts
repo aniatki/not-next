@@ -32,6 +32,7 @@ export async function getBarberData(uid: string) {
       return {
         id: doc.id,
         ...doc.data(),
+        bookingTime: data.bookingTime.toDate(),
         createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : null,
       }
     });

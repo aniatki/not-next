@@ -4,7 +4,7 @@ import { BookingStatus, Booking } from "@/app/actions/types";
 import { ReactNode, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { CalendarFold, Check, CheckCheck, Clock, Ghost, Handbag, LoaderCircle, Phone, UserRoundSearch, X } from 'lucide-react';
+import { Check, CheckCheck, Clock, Ghost, Handbag, LoaderCircle, Phone, UserRoundSearch, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Card,
@@ -68,10 +68,7 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
           <UserRoundSearch size={16} /> {booking.barber}
         </div>
         <div className="mb-2 flex items-center gap-2">
-          <CalendarFold size={16} /> {booking.bookingDate}
-        </div>
-        <div className="mb-2 flex items-center gap-2">
-          <Clock size={16} /> {booking.bookingTime}
+          <Clock size={16} /> {booking.bookingTime.toString().slice(0,21)}
         </div>
       </CardContent>
 

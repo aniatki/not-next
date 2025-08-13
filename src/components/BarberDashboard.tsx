@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import BookingCard from "./BookingCard";
 import { Booking } from "@/app/actions/types";
 import { DocumentData } from "firebase/firestore";
@@ -11,6 +10,9 @@ import {
   isBefore,
   isAfter,
   parseISO,
+  startOfDay,
+  isTomorrow,
+  getYear,
 } from "date-fns";
 import {
   Accordion,
@@ -38,6 +40,7 @@ export default function BarberDashboard({
   barberData: DocumentData | null | undefined;
   uid: string;
 }) {
+
   if (!barberData) {
     return (
       <p className="text-muted-foreground">
@@ -56,26 +59,31 @@ export default function BarberDashboard({
   const pastAndToday: Record<string, Booking[]> = {};
   const future: Record<string, Booking[]> = {};
 
+  const todayStart = startOfDay(today);
+  const currentYear = getYear(today);
+
   bookings.forEach((booking) => {
-    const date = parseISO(booking.bookingDate);
-    let label = format(date, "do 'of' MMMM");
+    const date = booking.bookingTime;
+    let label;
 
     if (isToday(date)) {
       label = "Today";
     } else if (isYesterday(date)) {
       label = "Yesterday";
+    } else if (isTomorrow(date)) {
+      label = "Tomorrow";
+    } else {
+      if (getYear(date) === currentYear) {
+        label = format(date, "do 'of' MMMM");
+      } else {
+        label = format(date, "do 'of' MMMM yyyy");
+      }
     }
 
-    if (isBefore(date, today) || isToday(date)) {
+    if (isBefore(date, todayStart) || isToday(date)) {
       if (!pastAndToday[label]) pastAndToday[label] = [];
       pastAndToday[label].push(booking);
-    } else if (isAfter(date, today)) {
-      if (
-        format(date, "yyyy-MM-dd") ===
-        format(new Date(today.getTime() + 86400000), "yyyy-MM-dd")
-      ) {
-        label = "Tomorrow";
-      }
+    } else if (isAfter(date, todayStart)) {
       if (!future[label]) future[label] = [];
       future[label].push(booking);
     }
