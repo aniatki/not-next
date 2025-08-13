@@ -1,10 +1,10 @@
-import Link from "next/link";
-
-export default function Home() {
+import { LoginForm } from "@/components/login-form"
+export default function LoginPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-3xl mb-8">Barber Portal</h1>
-        <Link className="bg-primary px-2 rounded-full" href={'/barber-dashboard'}>Sign In</Link>
-    </main>
-  );
+    <div className="bg-muted flex min-h-svh flex-col items-center gap-6 p-6 md:p-10">
+      <div className="flex w-full max-w-4xl flex-col gap-6">
+        <LoginForm />
+      </div>
+    </div>
+  )
 }

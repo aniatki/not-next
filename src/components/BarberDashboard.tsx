@@ -1,30 +1,166 @@
-"use client"
+"use client";
 
-import React from 'react';
+import React from "react";
 import BookingCard from "./BookingCard";
 import { Booking } from "@/app/actions/types";
-import { DocumentData } from 'firebase/firestore';
+import { DocumentData } from "firebase/firestore";
+import {
+  format,
+  isToday,
+  isYesterday,
+  isBefore,
+  isAfter,
+  parseISO,
+} from "date-fns";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Calendar, User } from "lucide-react";
+import { Avatar, AvatarImage } from "./ui/avatar";
+import { AvatarFallback } from "@radix-ui/react-avatar";
 
-export default function BarberDashboard({ barberData, uid }: { barberData: DocumentData | null | undefined, uid: string }) {
+export default function BarberDashboard({
+  avatarImage,
+  barberData,
+  uid,
+}: {
+  avatarImage: string | Blob | undefined;
+  barberData: DocumentData | null | undefined;
+  uid: string;
+}) {
   if (!barberData) {
-    return <p className="text-muted-foreground">No barber data found. Please contact your service provider.</p>
+    return (
+      <p className="text-muted-foreground">
+        No barber data found. Please contact your service provider.
+      </p>
+    );
   }
+
   const bookings = (barberData.bookings || []).filter(Boolean) as Booking[];
 
-  return (
-    <div className="flex flex-col items-center p-4">
-      <h2 className="text-3xl font-bold mb-6 text-center">Upcoming bookings for {barberData.email}</h2>
-      <p className="mb-4">Total Bookings: {`${bookings.length}`}</p>
+  if (bookings.length === 0) {
+    return <p>No bookings found for this proprietor.</p>;
+  }
 
-      {bookings.length === 0 ? (
-        <p>No bookings found for this proprietor.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
-          {bookings.map((booking: Booking) => (
-            <BookingCard key={booking.id} booking={booking} uid={uid} />
-          ))}
-        </div>
+  const today = new Date();
+  const pastAndToday: Record<string, Booking[]> = {};
+  const future: Record<string, Booking[]> = {};
+
+  bookings.forEach((booking) => {
+    const date = parseISO(booking.bookingDate);
+    let label = format(date, "do 'of' MMMM");
+
+    if (isToday(date)) {
+      label = "Today";
+    } else if (isYesterday(date)) {
+      label = "Yesterday";
+    }
+
+    if (isBefore(date, today) || isToday(date)) {
+      if (!pastAndToday[label]) pastAndToday[label] = [];
+      pastAndToday[label].push(booking);
+    } else if (isAfter(date, today)) {
+      if (
+        format(date, "yyyy-MM-dd") ===
+        format(new Date(today.getTime() + 86400000), "yyyy-MM-dd")
+      ) {
+        label = "Tomorrow";
+      }
+      if (!future[label]) future[label] = [];
+      future[label].push(booking);
+    }
+  });
+
+  const sortByDateDesc = (a: Booking, b: Booking) =>
+    parseISO(b.bookingDate).getTime() - parseISO(a.bookingDate).getTime();
+  const sortByDateAsc = (a: Booking, b: Booking) =>
+    parseISO(a.bookingDate).getTime() - parseISO(b.bookingDate).getTime();
+
+  Object.values(pastAndToday).forEach((arr) => arr.sort(sortByDateDesc));
+  Object.values(future).forEach((arr) => arr.sort(sortByDateAsc));
+
+  const getDateFromLabel = (label: string) => {
+    if (label === "Today") return today;
+    if (label === "Yesterday") return new Date(today.getTime() - 86400000);
+    if (label === "Tomorrow") return new Date(today.getTime() + 86400000);
+    const booking =
+      pastAndToday[label]?.[0] || future[label]?.[0];
+    return parseISO(booking.bookingDate);
+  };
+
+  const pastAndTodaySorted = Object.entries(pastAndToday).sort(
+    ([labelA], [labelB]) =>
+      getDateFromLabel(labelB).getTime() - getDateFromLabel(labelA).getTime()
+  );
+
+  const futureSorted = Object.entries(future).sort(
+    ([labelA], [labelB]) =>
+      getDateFromLabel(labelA).getTime() - getDateFromLabel(labelB).getTime()
+  );
+
+  return (
+    <div className="p-4 mx-auto grid grid-cols-1 sm:grid-cols-2">
+      {avatarImage && (
+        <Avatar>
+          <AvatarImage src={avatarImage as string} />
+          <AvatarFallback>
+            <User />
+          </AvatarFallback>
+        </Avatar>
       )}
+
+      <h2 className="font-bold mb-6 text-center col-span-1 sm:col-span-2">
+        Bookings for {barberData.email}
+      </h2>
+
+      <Sheet>
+        <SheetTrigger className="underline cursor-pointer hover:text-secondary">
+          Future Appointments
+        </SheetTrigger>
+        <SheetContent side="right">
+          <SheetHeader>
+            {futureSorted.map(([label, items]) => (
+              <div key={label} className="mb-6">
+                <SheetTitle className="flex mb-2 items-center gap-1">
+                  <Calendar size={18} /> {label}
+                </SheetTitle>
+                {items.map((b) => (
+                  <BookingCard key={b.id} booking={b} uid={uid} />
+                ))}
+              </div>
+            ))}
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
+
+      <Accordion type="single" collapsible className="col-span-1 sm:col-span-2">
+        {pastAndTodaySorted.map(([label, items], index) => (
+          <AccordionItem
+            key={index}
+            className="grid col-span-full grid-cols-subgrid"
+            value={`item-${index}`}
+          >
+            <div>
+              <AccordionTrigger>{label}</AccordionTrigger>
+              <AccordionContent>
+                {items.map((b) => (
+                  <BookingCard key={b.id} booking={b} uid={uid} />
+                ))}
+              </AccordionContent>
+            </div>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 }

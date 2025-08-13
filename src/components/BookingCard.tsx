@@ -4,16 +4,24 @@ import { BookingStatus, Booking } from "@/app/actions/types";
 import { ReactNode, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { CalendarFold, Clock, Handbag, LoaderCircle, Phone, UserRoundSearch } from 'lucide-react';
+import { CalendarFold, Check, CheckCheck, Clock, Ghost, Handbag, LoaderCircle, Phone, UserRoundSearch, X } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export default function BookingCard({ booking, uid }: { booking: Booking, uid: string }) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (!booking?.id || !uid) {
-        console.error("BookingCard: Cannot update status. Missing booking ID or UID.");
-        return;
-      }
+      console.error("BookingCard: Cannot update status. Missing booking ID or UID.");
+      return;
+    }
     setIsUpdating(true)
     await updateBookingStatus(uid, booking.id, newStatus);
     setIsUpdating(false)
@@ -38,78 +46,97 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
   }
 
   return (
-    <div 
+    <Card
       className={`
-        p-4 
-        rounded-lg 
-        shadow-sm 
-        border 
-        flex 
-        flex-col 
-        space-y-3 
-        ${booking.status === "pending" && "opacity-100 font-bold outline-ring outline-3"}
+        mb-4
+        ${booking.status === "pending" && "opacity-100 font-bold outline-3 -outline-offset-3"}
         ${booking.status === "rejected" && "opacity-65"}
         ${booking.status === "no-show" && "opacity-65"}
         `}>
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">{booking.clientName}</h3>
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium`}>
-          {isUpdating ? <LoaderCircle /> : status(booking.status)}
-        </span>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
-        <div className="flex items-center gap-2">
+      <CardHeader className="-mt-2 -mb-4 flex justify-between items-center">
+        <CardTitle className="text-lg font-semibold">{booking.clientName}</CardTitle>
+        {isUpdating ? <LoaderCircle /> : status(booking.status)}
+      </CardHeader>
+      <CardContent className="opacity-70">
+        <div className="mb-2 flex items-center gap-2">
           <Phone size={16} /> {booking.clientPhone}
         </div>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
-        <div className="flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <Handbag size={16} /> {booking.service}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <UserRoundSearch size={16} /> {booking.barber}
         </div>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:space-x-4 text-sm">
-        <div className="flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <CalendarFold size={16} /> {booking.bookingDate}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <Clock size={16} /> {booking.bookingTime}
         </div>
-      </div>
+      </CardContent>
 
-      <div className="flex flex-wrap gap-2 pt-2 border-t mt-auto">
+      <CardFooter>
         {booking.status === BookingStatus.Pending && (
           <>
             <Button
-              onClick={() => handleUpdateStatus(BookingStatus.Accepted)}
+              onClick={() => { 
+                const pt = handleUpdateStatus(BookingStatus.Accepted); 
+                toast.promise(pt, {
+                  loading: "Updating...", 
+                  success: () => "Accepted."}) 
+              }}
               disabled={isUpdating}
-              variant="default"
-              className="bg-primary-foreground text-primary hover:bg-primary-foreground/80"
+              variant="secondary"
+              className="mr-4"
             >
+              <Check />
               Accept
             </Button>
             <Button
-              onClick={() => handleUpdateStatus(BookingStatus.Rejected)}
+              onClick={() => { 
+                const pt = handleUpdateStatus(BookingStatus.Rejected); 
+                toast.promise(pt, {
+                  loading: "Updating...", 
+                  success: () => "Rejected."}) 
+              }}
               disabled={isUpdating}
               variant="destructive"
             >
+              <X></X>
               Reject
             </Button>
           </>
         )}
         {booking.status === BookingStatus.Accepted && (
-          <Button
-            className="w-28"
-            onClick={() => handleUpdateStatus(BookingStatus.Done)}
-            disabled={isUpdating}
-            variant="default"
-          >
-            {isUpdating ? <LoaderCircle /> :"Mark as Done"}
-          </Button>
+          <>
+            <Button
+              onClick={() => { 
+                const pt = handleUpdateStatus(BookingStatus.Done); 
+                toast.promise(pt, {
+                  loading: "Updating...", 
+                  success: () => "Completed."}) 
+              }}
+              disabled={isUpdating}
+              variant="outline"
+            >
+              {isUpdating ? <LoaderCircle /> : (<><CheckCheck /> Mark as Done</>)}
+            </Button>
+            <Button
+              onClick={() => { 
+                const pt = handleUpdateStatus(BookingStatus.NoShow); 
+                toast.promise(pt, {
+                  loading: "Updating...",
+                  success: () => "Updated to No Show",
+                }) 
+              }}
+              disabled={isUpdating}
+              variant="ghost"
+            >
+              {isUpdating ? <LoaderCircle /> : (<><Ghost /> No Show</>)}
+            </Button>
+          </>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

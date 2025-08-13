@@ -8,11 +8,10 @@ export default async function BarberDashboardPage() {
   if (decodedClaims) {
     const barberData = await getBarberData(decodedClaims.uid);
     return (
-      <div className="flex flex-col mx-auto max-w-3xl p-4">
+      <div className="mx-auto">
         <BarberLoginClient user={decodedClaims} barberData={barberData} />
       </div>
     );
   }
-
   return <BarberLoginClient user={null} barberData={null}/>;
 }
