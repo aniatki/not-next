@@ -4,7 +4,7 @@ import { BookingStatus, Booking } from "@/app/actions/types";
 import { ReactNode, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Check, CheckCheck, Clock, Ghost, Handbag, LoaderCircle, Phone, UserRoundSearch, X } from 'lucide-react';
+import { Check, CheckCheck, Clock, Ghost, Handbag, Phone, UserRoundSearch, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Card,
@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import CircularProgress from "@mui/material/CircularProgress";
 
 export default function BookingCard({ booking, uid }: { booking: Booking, uid: string }) {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -55,7 +56,7 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
         `}>
       <CardHeader className="-mt-2 -mb-4 flex justify-between items-center">
         <CardTitle className="text-lg font-semibold">{booking.clientName}</CardTitle>
-        {isUpdating ? <LoaderCircle /> : status(booking.status)}
+        {isUpdating ? <CircularProgress size="20px" /> : status(booking.status)}
       </CardHeader>
       <CardContent className="opacity-70">
         <div className="mb-2 flex items-center gap-2">
@@ -116,7 +117,7 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
               disabled={isUpdating}
               variant="outline"
             >
-              {isUpdating ? <LoaderCircle /> : (<><CheckCheck /> Mark as Done</>)}
+              {isUpdating ? <CircularProgress size="20px" /> : (<><CheckCheck /> Mark as Done</>)}
             </Button>
             <Button
               onClick={() => { 
@@ -129,7 +130,7 @@ export default function BookingCard({ booking, uid }: { booking: Booking, uid: s
               disabled={isUpdating}
               variant="ghost"
             >
-              {isUpdating ? <LoaderCircle /> : (<><Ghost /> No Show</>)}
+              {isUpdating ? <CircularProgress size="20px" /> : (<><Ghost /> No Show</>)}
             </Button>
           </>
         )}

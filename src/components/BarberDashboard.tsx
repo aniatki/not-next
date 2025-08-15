@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getApps, initializeApp } from "firebase/app";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore";
+
 import BookingCard from "./BookingCard";
 import { Booking } from "@/app/actions/types";
 import { DocumentData } from "firebase/firestore";
@@ -41,6 +45,37 @@ export default function BarberDashboard({
   uid: string;
 }) {
 
+  const [bookings, setBookings] = useState<Booking[]>(() =>
+    (barberData?.bookings || []).filter(Boolean) as Booking[]
+  );
+
+  useEffect(() => {
+    if (!barberData?.firebaseConfig) return;
+
+    const appName = `proprietor-${uid}`;
+    const clientApp =
+      getApps().find((app) => app.name === appName) ||
+      initializeApp(barberData.firebaseConfig, appName);
+
+    const clientDb = getFirestore(clientApp);
+    const q = query(collection(clientDb, "bookings"), orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const updatedBookings = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          bookingTime: data.bookingTime?.toDate(),
+          createdAt: data.createdAt?.toDate().toISOString() || null,
+        } as Booking;
+      });
+      setBookings(updatedBookings);
+    });
+
+    return () => unsubscribe();
+  }, [uid, barberData?.firebaseConfig]);
+
   if (!barberData) {
     return (
       <p className="text-muted-foreground">
@@ -48,8 +83,6 @@ export default function BarberDashboard({
       </p>
     );
   }
-
-  const bookings = (barberData.bookings || []).filter(Boolean) as Booking[];
 
   if (bookings.length === 0) {
     return <p>No bookings found for this proprietor.</p>;
